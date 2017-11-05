@@ -81,7 +81,8 @@ public class Controller {
 
 
         //db = new PostgreSQL("localhost:5432/link_manager", "postgres", "masterkey");
-        db = new PostgreSQL("ec2-54-75-248-193.eu-west-1.compute.amazonaws.com:5432/dfo34hv66rtq0v?sslmode=require",
+        db = new PostgreSQL(
+                "ec2-54-75-248-193.eu-west-1.compute.amazonaws.com:5432/dfo34hv66rtq0v?sslmode=require",
                 "czzkavntolnnaj",
                 "e09ee81b37a589eec74e93ae409b80922decedcd270be6c80ab313c19276ac4f");
 
@@ -357,9 +358,9 @@ public class Controller {
                     new Pane(connectSites.get(i),
                             sections[id_section - 1],
                             db.queryResult(
-                                    "SELECT c.title " +
-                                            "FROM dfo34hv66rtq0v.public.categories c " +
-                                            "WHERE c.id_category = " + infoBase[i][1])[0][0]));
+                                    "SELECT title " +
+                                            "FROM dfo34hv66rtq0v.public.categories " +
+                                            "WHERE id_category = " + infoBase[i][1])[0][0]));
 
             anchorSites.get(i).getPane().getChildren().add(createBookmark());
 
