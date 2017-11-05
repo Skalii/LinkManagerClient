@@ -1,0 +1,295 @@
+.preview {
+    -fx-background-color: rgb(98, 101, 105);
+}
+
+.back {
+    -fx-background-color: #bfc5c8;
+}
+
+/*
+*
+*       ANCHOR PANES NAVIGATION START
+*
+*/
+
+.anchor-nav {
+    -fx-background-color: rgb(204, 207, 210);
+    -fx-border-color: rgba(92, 93, 110, 0.71);
+    -fx-effect: dropshadow(gaussian, #4f6669, 8, 0.02, 0, 0);
+}
+
+.anchor-nav:hover {
+    -fx-background-color: rgb(219, 222, 225);
+    -fx-border-color: rgba(98, 99, 115, 0.71);
+    -fx-effect: dropshadow(gaussian, #a9c5c8, 8, 0.02, 0, 0);
+}
+
+.anchor-nav .scroll-bar:vertical .track-background {
+    -fx-background-color: #9b9daf;
+}
+
+.anchor-nav .scroll-bar:vertical .thumb {
+    -fx-background-color: #7a7d87;
+}
+
+.anchor-nav .scroll-bar:vertical .thumb:hover,
+.anchor-nav .scroll-bar:vertical .decrement-button:hover,
+.anchor-nav .scroll-bar:vertical .increment-button:hover {
+    -fx-background-color: #595c69;
+}
+
+.anchor-nav .scroll-bar:vertical .thumb:pressed,
+.anchor-nav .scroll-bar:vertical .decrement-button:pressed,
+.anchor-nav .scroll-bar:vertical .increment-button:pressed,
+.anchor-nav .scroll-bar:vertical .decrement-button .decrement-arrow,
+.anchor-nav .scroll-bar:vertical .increment-button .increment-arrow {
+    -fx-background-color: #40424b;
+}
+
+/*
+*
+*       ANCHOR PANES NAVIGATION END
+*
+*
+*       ANCHOR PANES SITES START
+*
+*/
+
+.anchor-sites {
+    -fx-background-color: rgb(199, 202, 205);
+    -fx-border-color: rgba(92, 93, 110, 0.71);
+    -fx-effect: dropshadow(gaussian, #4f6669, 8, 0.02, 0, 0);
+}
+
+.anchor-sites:hover {
+    -fx-background-color: rgb(234, 237, 240);
+    -fx-border-color: rgba(113, 114, 130, 0.71);
+    -fx-effect: dropshadow(gaussian, #a9c5c8, 8, 0.02, 0, 0);
+}
+
+.anchor-sites .text-area {
+    -fx-background-color: rgb(235, 235, 235);
+    -fx-border-color: rgba(90, 91, 108, 0.71);
+    -fx-effect: dropshadow(gaussian, #4f6669, 8, 0.02, 0, 0);
+}
+
+.anchor-sites .text-area .scroll-pane:fitToWidth .viewport .content {
+    -fx-background-color: rgb(235, 235, 235);
+}
+
+.anchor-sites:hover .text-area {
+    -fx-background-color: rgb(225, 225, 225);
+    -fx-border-color: rgba(90, 91, 108, 0.71);
+    -fx-effect: dropshadow(gaussian, #4f6669, 8, 0.02, 0, 0);
+}
+
+.anchor-sites:hover .text-area .scroll-pane:fitToWidth .viewport .content {
+    -fx-background-color: rgb(225, 225, 225);
+}
+
+/*
+*
+*       ANCHOR PANES SITES END
+*
+*
+*       MENU-BAR START
+*
+ */
+
+.menu-bar .container {
+    -fx-background-color: #d8dee1;
+    -fx-effect: dropshadow(three-pass-box, #4f6669, 8, 0.02, 0, 0);
+}
+
+.menu:hover {
+    -fx-background-color: #929ca5;
+}
+
+.menu:showing {
+    -fx-background-color: #707982;
+}
+
+.menu-bar .container .menu:openvertically .label .text,
+.menu-bar .container .menu:showing .menu-item:hover .label .text {
+    -fx-fill: #373737;
+}
+
+.menu-bar .container .menu:showing .label .text {
+    -fx-fill: #e6e6e6;
+}
+
+.menu-item, .menu .context-menu, .menu .separator {
+    -fx-background-color: #707982;
+}
+
+.menu-item:hover {
+    -fx-background-color: #c9d3dc;
+}
+
+.menu-item:pressed {
+    -fx-background-color: #a1abb4;
+}
+
+/*
+*
+*       MENU-BAR END
+*
+*
+*       COMBO-BOX START
+*
+*/
+
+.combo-box {
+    -fx-background-color: #9b9daf;
+}
+
+.combo-box:hover {
+    -fx-background-color: #7c7e91;
+}
+
+.combo-box:pressed {
+    -fx-background-color: #5f6273;
+}
+
+.combo-box:hover .arrow-button .arrow, .combo-box:pressed .arrow-button .arrow {
+    -fx-background-color: #c8cadc;
+}
+
+.combo-box .list-cell:filled:selected,
+.combo-box-popup .list-view,
+.combo-box-popup .list-view .list-cell {
+    -fx-background-color: #afb1c3;
+}
+
+.combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #8b8da0;
+    -fx-text-fill: #e6e6e6;
+}
+
+.combo-box-popup .list-view .list-cell:filled:selected {
+    -fx-background-color: #737587;
+    -fx-text-fill: #e6e6e6;
+}
+
+/*
+*
+*       COMBO-BOX END
+*
+*
+*       IMAGE-VIEW START
+*
+*/
+
+.image-view-control {
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, #4f6669, 1.75, 0.001, 1, 1);
+}
+
+.image-view-title {
+    -fx-image: url("/icons/main/title_focus_no.png");
+}
+
+.image-view-title:hover {
+    -fx-image: url("/icons/main/title_focus_yes.png");
+}
+
+.image-view-minimize {
+    -fx-image: url("/icons/main/minimize_focus_no.png");
+}
+
+.image-view-minimize:hover {
+    -fx-image: url("/icons/main/minimize_focus_yes.png");
+}
+
+.image-view-close {
+    -fx-image: url("/icons/main/close_focus_no.png");
+}
+
+.image-view-close:hover {
+    -fx-image: url("/icons/main/close_focus_yes.png");
+}
+
+.image-view-bookmark {
+    -fx-image: url("/icons/anchorsite/bookmark_focus_no.png");
+}
+
+.image-view-bookmark:hover {
+    -fx-image: url("/icons/anchorsite/bookmark_focus_yes.png");
+}
+
+.image-view-bookmark-selected {
+    -fx-image: url("/icons/anchorsite/bookmark_focus_yes.png");
+}
+
+.image-view-bookmark-selected:hover {
+    -fx-image: url("/icons/anchorsite/bookmark_focus_no.png");
+}
+
+.image-view-link {
+    -fx-image: url("/icons/anchorsite/link_focus_no.png");
+}
+
+.image-view-link:hover {
+    -fx-image: url("/icons/anchorsite/link_focus_yes.png");
+}
+
+.image-view-share {
+    -fx-image: url("/icons/anchorsite/share_focus_no.png");
+}
+
+.image-view-share:hover {
+    -fx-image: url("/icons/anchorsite/share_focus_yes.png");
+}
+
+/*
+*
+*       IMAGE-VIEW END
+*
+*
+*       BUTTON START
+*
+*/
+
+.button {
+    -fx-background-color: #acafb9;
+}
+
+.button:hover {
+    -fx-background-color: #7c7f8c;
+    -fx-text-fill: #e6e6e6;
+}
+
+.button:pressed {
+    -fx-background-color: #54565f;
+    -fx-text-fill: #e6e6e6;
+}
+
+/*
+*
+*       BUTTON END
+*
+*
+*       TEXT-FIELD START
+*
+*/
+
+.text-field {
+    -fx-background-color: #b4b6c8;
+    -fx-prompt-text-fill: #696c78;
+}
+
+.text-field:hover {
+    -fx-background-color: #a0a2b4;
+}
+
+.text-field:pressed {
+    -fx-background-color: #7e8091;
+    -fx-text-fill: #e6e6e6;
+    -fx-prompt-text-fill: #cdcdcd;
+}
+
+/*
+*
+*       TEXT-FIELD END
+*
+*/

@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="LinkManager:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/LinkManager_jar</output-path>
+    <root id="archive" name="LinkManager.jar">
+      <element id="module-output" name="LinkManager" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lib/com.skaliy.dbc-1.0-SNAPSHOT.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lib/jsoup-1.10.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lib/javafx-maven-plugin-8.8.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lib/annotations-15.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lib/annotations-12.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/main/resources/lib/postgresql-42.1.4.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
