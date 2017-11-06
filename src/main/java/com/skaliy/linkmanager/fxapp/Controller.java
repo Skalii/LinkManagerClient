@@ -451,7 +451,7 @@ public class Controller {
 
         // TODO: 25.10.2017 ADD BOOKMARK
         System.out.println("Добавлена закладка " + currentProfile[1] + ": " + listPaneAll.get(indexBookmark).getLinkSite() +
-                "\nСайты в закладках  " + currentProfile[1] + ": " + Arrays.deepToString(db.queryResult(
+                "\nСайты в закладках " + currentProfile[1] + ": " + Arrays.deepToString(db.queryResult(
                 "SELECT s.link " +
                         "FROM dfo34hv66rtq0v.public.sites s, dfo34hv66rtq0v.public.profiles p " +
                         "WHERE p.id_profile = " + currentProfile[0] +
