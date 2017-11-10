@@ -7,10 +7,12 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="LinkManager" />
+        <module name="LinkManagerClient" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="LinkManager" target="1.8" />
+      <module name="LinkManagerClient" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
