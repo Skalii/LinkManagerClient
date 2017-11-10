@@ -2,7 +2,7 @@
   <artifact type="jar" name="LinkManager:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/LinkManager_jar</output-path>
     <root id="archive" name="LinkManager.jar">
-      <element id="module-output" name="LinkManager" />
+      <element id="module-output" name="LinkManagerClient" />
     </root>
   </artifact>
 </component>

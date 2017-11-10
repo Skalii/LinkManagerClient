@@ -379,11 +379,7 @@ public class Controller {
         listPaneCurrent = FXCollections.observableArrayList();
         int layoutY = 10;
 
-        ArrayList<String[]> bookmarks = client.query(
-                "SELECT s.link " +
-                        "FROM sites s, profiles p " +
-                        "WHERE p.id_profile = " + currentProfile[0] +
-                        " AND s.id_site = ANY(p.ids_bookmark)");
+        ArrayList<String[]> bookmarks = client.query("get_bookmarks_from_" + currentProfile[0]);
 
         // TODO: 25.10.2017 BOOKMARKS
         System.out.println("Сайты в закладках " + currentProfile[1] + ": " + Arrays.deepToString(new ArrayList[]{bookmarks}));
@@ -445,67 +441,48 @@ public class Controller {
 
     private void addBookmark(int indexBookmark) throws SQLException {
         client.query(false,
-                "INSERT INTO bookmarks VALUES (" +
-                        currentProfile[0] + ", " +
-                        "(SELECT id_site " +
-                        "FROM sites " +
-                        "WHERE link = '" + listPaneAll.get(indexBookmark).getLinkSite() + "')" + ")");
+                "add_bookmark," + currentProfile[0]
+                        + "," + listPaneAll.get(indexBookmark).getLinkSite());
 
-        currentProfile[7] = client.query(
-                "SELECT ids_bookmark " +
-                        "FROM profiles " +
-                        "WHERE id_profile = " + currentProfile[0]).get(0)[0];
+        currentProfile[7] = client.query("get_bookmarks_ids_from_" + currentProfile[0]).get(0)[0];
 
         // TODO: 25.10.2017 ADD BOOKMARK
         System.out.println("Добавлена закладка " + currentProfile[1] + ": " + listPaneAll.get(indexBookmark).getLinkSite() +
                 "\nСайты в закладках  " + currentProfile[1] + ": " + Arrays.deepToString(new ArrayList[]{client.query(
-                "SELECT s.link " +
-                        "FROM sites s, profiles p " +
-                        "WHERE p.id_profile = " + currentProfile[0] +
-                        " AND s.id_site = ANY(p.ids_bookmark)")}));
+                "get_bookmarks_from_" + currentProfile[0])}));
     }
 
     private void removeBookmark(int indexBookmark) throws SQLException {
         client.query(false,
-                "DELETE FROM bookmarks " +
-                        "WHERE id_profile = " + currentProfile[0] +
-                        " AND id_site = (SELECT id_site " +
-                        "FROM sites " +
-                        "WHERE link = '" + listPaneAll.get(indexBookmark).getLinkSite() + "')");
+                "delete_bookmark," + currentProfile[0]
+                        + "," + listPaneAll.get(indexBookmark).getLinkSite());
 
-        currentProfile[7] = client.query(
-                "SELECT ids_bookmark " +
-                        "FROM profiles " +
-                        "WHERE id_profile = " + currentProfile[0]).get(0)[0];
+        currentProfile[7] = client.query("get_bookmarks_ids_from_" + currentProfile[0]).get(0)[0];
 
         // TODO: 25.10.2017 REMOVE BOOKMARK
         System.out.println("Удалена закладка  " + currentProfile[1] + ": " + listPaneAll.get(indexBookmark).getLinkSite() +
                 "\nСайты в закладках " + currentProfile[1] + ": " + Arrays.deepToString(new ArrayList[]{client.query(
-                "SELECT s.link " +
-                        "FROM sites s, profiles p " +
-                        "WHERE p.id_profile = " + currentProfile[0] +
-                        " AND s.id_site = ANY(p.ids_bookmark)")}));
+                "get_bookmarks_from_" + currentProfile[0])}));
     }
 
     private void verifyAuthorization() {
         String[] verification = new String[2];
 
         textLogin.setOnKeyReleased(event -> {
-            ArrayList<String[]> profiles = client.query("SELECT * FROM profiles");
+            ArrayList<String[]> profiles = client.query("get_profiles");
 
             verification[0] = textLogin.getText();
 
             for (int i = 0; i < profiles.size(); i++) {
-                if (Objects.equals(verification[0], profiles.get(i)[1]) && Objects.equals(verification[1], profiles.get(i)[2])) {
+
+                if (Objects.equals(verification[0], profiles.get(i)[1])
+                        && Objects.equals(verification[1], profiles.get(i)[2])) {
+
                     currentProfile = profiles.get(i);
                     setAnchorNavProfile(true);
                     verification[0] = "";
 
-                    ArrayList<String[]> bookmarks = client.query(
-                            "SELECT s.link " +
-                                    "FROM sites s, profiles p " +
-                                    "WHERE p.id_profile = " + currentProfile[0] +
-                                    " AND s.id_site = ANY(p.ids_bookmark)");
+                    ArrayList<String[]> bookmarks = client.query("get_bookmarks_from_" + currentProfile[0]);
 
                     for (int j = 0; j < listPaneAll.size(); j++)
                         for (int k = 0; k < bookmarks.size(); k++)
@@ -524,21 +501,20 @@ public class Controller {
         });
 
         textPassword.setOnKeyReleased(event -> {
-            ArrayList<String[]> profiles =  client.query("SELECT * FROM profiles");
+            ArrayList<String[]> profiles = client.query("get_profiles");
 
             verification[1] = textPassword.getText();
 
             for (int i = 0; i < profiles.size(); i++) {
-                if (Objects.equals(verification[1], profiles.get(i)[2]) && Objects.equals(verification[0], profiles.get(i)[1])) {
+
+                if (Objects.equals(verification[1], profiles.get(i)[2])
+                        && Objects.equals(verification[0], profiles.get(i)[1])) {
+
                     currentProfile = profiles.get(i);
                     setAnchorNavProfile(true);
                     verification[1] = "";
 
-                    ArrayList<String[]> bookmarks = client.query(
-                            "SELECT s.link " +
-                                    "FROM sites s, profiles p " +
-                                    "WHERE p.id_profile = " + currentProfile[0] +
-                                    " AND s.id_site = ANY(p.ids_bookmark)");
+                    ArrayList<String[]> bookmarks = client.query("get_bookmarks_from_" + currentProfile[0]);
 
                     for (int j = 0; j < listPaneAll.size(); j++)
                         for (int k = 0; k < bookmarks.size(); k++)
@@ -763,7 +739,7 @@ public class Controller {
                                             textRegPass1.getText() + "," +
                                             textRegLName.getText() + "," +
                                             textRegFName.getText() + "," +
-                                            textRegEmail.getText() + "_5");
+                                            textRegEmail.getText());
 
                             // TODO: 25.10.2017 REGISTRATION
                             System.out.println("Добавлен пользователь: " + textRegLogin.getText());
