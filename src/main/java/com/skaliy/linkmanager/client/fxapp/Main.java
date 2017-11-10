@@ -1,4 +1,4 @@
-package com.skaliy.linkmanager.fxapp;
+package com.skaliy.linkmanager.client.fxapp;
 
 import javafx.application.Application;
 import javafx.application.Platform;

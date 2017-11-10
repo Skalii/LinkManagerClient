@@ -1,4 +1,4 @@
-package com.skaliy.linkmanager.sites;
+package com.skaliy.linkmanager.client.sites;
 
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;

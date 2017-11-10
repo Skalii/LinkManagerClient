@@ -1,8 +1,8 @@
-package com.skaliy.linkmanager.fxapp;
+package com.skaliy.linkmanager.client.fxapp;
 
-import com.skaliy.dbc.dbms.PostgreSQL;
-import com.skaliy.linkmanager.sites.Connect;
-import com.skaliy.linkmanager.sites.Pane;
+import com.skaliy.linkmanager.client.client.Client;
+import com.skaliy.linkmanager.client.sites.Connect;
+import com.skaliy.linkmanager.client.sites.Pane;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,6 +15,8 @@ import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -49,12 +51,25 @@ public class Controller {
 
     private String[] currentProfile, sections, categoryInfobase, categoryProgramming, categoryReading;
 
-    private PostgreSQL db;
+    private Client client;
 
     private boolean[] isBookmark;
     private int countBookmark = -1;
 
-    public void initialize() {
+    public void initialize() throws InterruptedException {
+        client = new Client("localhost", 7777);
+        Thread thread = new Thread(client);
+        thread.start();
+
+        while (true) {
+            try {
+                if (client.isOpen())
+                    break;
+            } catch (NullPointerException e) {
+                Thread.sleep(50);
+            }
+        }
+
         int indexThisStage = Main.quant;
 
         imageMinimize.setOnMouseClicked(event -> Main.parent[indexThisStage].setIconified(true));
@@ -79,19 +94,11 @@ public class Controller {
         menuHide.setOnAction(event -> Main.parent[indexThisStage].hide());
         menuExit.setOnAction(event -> System.exit(0));
 
-
-        //db = new PostgreSQL("localhost:5432/link_manager", "postgres", "masterkey");
-        db = new PostgreSQL(
-                "ec2-54-75-248-193.eu-west-1.compute.amazonaws.com:5432/dfo34hv66rtq0v?sslmode=require",
-                "czzkavntolnnaj",
-                "e09ee81b37a589eec74e93ae409b80922decedcd270be6c80ab313c19276ac4f");
-
         sections = setSections();
-        categoryInfobase = setCategories(1);
-        categoryProgramming = setCategories(2);
-        categoryReading = setCategories(3);
-        isBookmark = new boolean[Integer.parseInt(db.queryResult(
-                "SELECT count(link) FROM dfo34hv66rtq0v.public.sites")[0][0])];
+        categoryInfobase = setCategory(1);
+        categoryProgramming = setCategory(2);
+        categoryReading = setCategory(3);
+        isBookmark = new boolean[Integer.parseInt(client.query("get_count_links").get(0)[0])];
 
 
         if (listConnectInfoBase == null)
@@ -117,8 +124,14 @@ public class Controller {
         labelReg.setOnMouseClicked(event -> setAnchorNavRegistration());
         verifyAuthorization();
         buttonProfileLogOut.setOnAction(event -> logOut());
-        buttonProfileBookmarks.setOnAction(event -> setListBookmarkSites(
-                listPaneInfoBase, listPaneProgramming, listPaneReading));
+        buttonProfileBookmarks.setOnAction(event -> {
+            try {
+                setListBookmarkSites(
+                        listPaneInfoBase, listPaneProgramming, listPaneReading);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
 
         comboSections.getItems().setAll("- выбор -");
         comboSections.getItems().addAll(sections);
@@ -244,27 +257,22 @@ public class Controller {
     }
 
     private String[] setSections() {
-        String[][] records = db.queryResult(
-                "SELECT title " +
-                        "FROM dfo34hv66rtq0v.public.sections");
-        String[] result = new String[records.length];
+        ArrayList<String[]> records = client.query("get_sections");
+        String[] result = new String[records.size()];
 
-        for (int i = 0; i < records.length; i++)
-            result[i] = records[i][0];
+        for (int i = 0; i < records.size(); i++) {
+            result[i] = records.get(i)[0];
+        }
 
         return result;
     }
 
-    private String[] setCategories(int index) {
-        String[][] records = db.queryResult(
-                "SELECT c.title " +
-                        "FROM dfo34hv66rtq0v.public.categories c, dfo34hv66rtq0v.public.sections s " +
-                        "WHERE s.id_section = " + index +
-                        " AND c.id_category = ANY(s.ids_category)");
-        String[] result = new String[records.length];
+    private String[] setCategory(int index) {
+        ArrayList<String[]> records = client.query("get_category_" + index);
+        String[] result = new String[records.size()];
 
-        for (int i = 0; i < records.length; i++)
-            result[i] = records[i][0];
+        for (int i = 0; i < records.size(); i++)
+            result[i] = records.get(i)[0];
 
         return result;
     }
@@ -327,11 +335,8 @@ public class Controller {
     private ObservableList<Connect> setListConnects(int id_section) {
         ObservableList<Connect> connectSites = FXCollections.observableArrayList();
 
-        String[][] infoBase = db.queryResult(
-                "SELECT si.* " +
-                        "FROM dfo34hv66rtq0v.public.sites si, dfo34hv66rtq0v.public.sections se " +
-                        "WHERE se.id_section = " + id_section +
-                        " AND si.id_category = ANY(se.ids_category)");
+        ArrayList<String[]> infoBase = client.query(
+                "get_list_connects_" + id_section);
 
         int i = 0;
         for (String[] anInfoBase : infoBase) {
@@ -347,20 +352,13 @@ public class Controller {
     private ObservableList<Pane> setListPanes(ObservableList<Connect> connectSites, int id_section) {
         ObservableList<Pane> anchorSites = FXCollections.observableArrayList();
 
-        String[][] infoBase = db.queryResult(
-                "SELECT si.* " +
-                        "FROM dfo34hv66rtq0v.public.sites si, dfo34hv66rtq0v.public.sections se " +
-                        "WHERE se.id_section = " + id_section +
-                        " AND si.id_category = ANY(se.ids_category)");
+        ArrayList<String[]> infoBase = client.query("get_list_from_section_" + id_section);
 
         for (int i = 0; i < connectSites.size(); i++) {
             anchorSites.add(
                     new Pane(connectSites.get(i),
                             sections[id_section - 1],
-                            db.queryResult(
-                                    "SELECT title " +
-                                            "FROM dfo34hv66rtq0v.public.categories " +
-                                            "WHERE id_category = " + infoBase[i][1])[0][0]));
+                            client.query("get_category_from_" + infoBase.get(i)[1]).get(0)[0]));
 
             anchorSites.get(i).getPane().getChildren().add(createBookmark());
 
@@ -370,7 +368,7 @@ public class Controller {
         return anchorSites;
     }
 
-    private void setListBookmarkSites(ObservableList<Pane>... sites) {
+    private void setListBookmarkSites(ObservableList<Pane>... sites) throws SQLException {
         comboSections.getSelectionModel().clearSelection();
         comboCategories.getItems().remove(1, comboCategories.getItems().size());
         comboCategories.setDisable(true);
@@ -381,19 +379,19 @@ public class Controller {
         listPaneCurrent = FXCollections.observableArrayList();
         int layoutY = 10;
 
-        String[][] bookmarks = db.queryResult(
+        ArrayList<String[]> bookmarks = client.query(
                 "SELECT s.link " +
-                        "FROM dfo34hv66rtq0v.public.sites s, dfo34hv66rtq0v.public.profiles p " +
+                        "FROM sites s, profiles p " +
                         "WHERE p.id_profile = " + currentProfile[0] +
                         " AND s.id_site = ANY(p.ids_bookmark)");
 
         // TODO: 25.10.2017 BOOKMARKS
-        System.out.println("Сайты в закладках " + currentProfile[1] + ": " + Arrays.deepToString(bookmarks));
+        System.out.println("Сайты в закладках " + currentProfile[1] + ": " + Arrays.deepToString(new ArrayList[]{bookmarks}));
 
         for (int i = 0, index = 0; i < sites.length; i++)
             for (int j = 0; j < sites[i].size(); j++)
-                for (int k = 0; k < bookmarks.length; k++)
-                    if (Objects.equals(sites[i].get(j).getLinkSite(), bookmarks[k][0])) {
+                for (int k = 0; k < bookmarks.size(); k++)
+                    if (Objects.equals(sites[i].get(j).getLinkSite(), bookmarks.get(k)[0])) {
                         anchorSitesParent.getChildren().add(sites[i].get(j).getPane());
                         anchorSitesParent.getChildren().get(index).setLayoutY(layoutY);
                         anchorSitesParent.getChildren().get(index).setLayoutX(10);
@@ -424,85 +422,94 @@ public class Controller {
                 if (!isBookmark[thisBookmark]) {
                     isBookmark[thisBookmark] = true;
                     imageBookmark.getStyleClass().add("image-view-bookmark-selected");
-                    addBookmark(thisBookmark);
+                    try {
+                        addBookmark(thisBookmark);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
                     return;
                 }
 
                 isBookmark[thisBookmark] = false;
                 imageBookmark.getStyleClass().add("image-view-bookmark");
-                removeBookmark(thisBookmark);
+                try {
+                    removeBookmark(thisBookmark);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
         return imageBookmark;
     }
 
-    private void addBookmark(int indexBookmark) {
-        db.query(
-                "INSERT INTO dfo34hv66rtq0v.public.bookmarks VALUES (" +
+    private void addBookmark(int indexBookmark) throws SQLException {
+        client.query(false,
+                "INSERT INTO bookmarks VALUES (" +
                         currentProfile[0] + ", " +
                         "(SELECT id_site " +
-                        "FROM dfo34hv66rtq0v.public.sites " +
+                        "FROM sites " +
                         "WHERE link = '" + listPaneAll.get(indexBookmark).getLinkSite() + "')" + ")");
 
-        currentProfile[7] = db.queryResult(
+        currentProfile[7] = client.query(
                 "SELECT ids_bookmark " +
-                        "FROM dfo34hv66rtq0v.public.profiles " +
-                        "WHERE id_profile = " + currentProfile[0])[0][0];
+                        "FROM profiles " +
+                        "WHERE id_profile = " + currentProfile[0]).get(0)[0];
 
         // TODO: 25.10.2017 ADD BOOKMARK
         System.out.println("Добавлена закладка " + currentProfile[1] + ": " + listPaneAll.get(indexBookmark).getLinkSite() +
-                "\nСайты в закладках " + currentProfile[1] + ": " + Arrays.deepToString(db.queryResult(
+                "\nСайты в закладках  " + currentProfile[1] + ": " + Arrays.deepToString(new ArrayList[]{client.query(
                 "SELECT s.link " +
-                        "FROM dfo34hv66rtq0v.public.sites s, dfo34hv66rtq0v.public.profiles p " +
+                        "FROM sites s, profiles p " +
                         "WHERE p.id_profile = " + currentProfile[0] +
-                        " AND s.id_site = ANY(p.ids_bookmark)")));
+                        " AND s.id_site = ANY(p.ids_bookmark)")}));
     }
 
-    private void removeBookmark(int indexBookmark) {
-        db.query(
-                "DELETE FROM dfo34hv66rtq0v.public.bookmarks " +
+    private void removeBookmark(int indexBookmark) throws SQLException {
+        client.query(false,
+                "DELETE FROM bookmarks " +
                         "WHERE id_profile = " + currentProfile[0] +
                         " AND id_site = (SELECT id_site " +
-                        "FROM dfo34hv66rtq0v.public.sites " +
+                        "FROM sites " +
                         "WHERE link = '" + listPaneAll.get(indexBookmark).getLinkSite() + "')");
 
-        currentProfile[7] = db.queryResult(
+        currentProfile[7] = client.query(
                 "SELECT ids_bookmark " +
-                        "FROM dfo34hv66rtq0v.public.profiles " +
-                        "WHERE id_profile = " + currentProfile[0])[0][0];
+                        "FROM profiles " +
+                        "WHERE id_profile = " + currentProfile[0]).get(0)[0];
 
         // TODO: 25.10.2017 REMOVE BOOKMARK
         System.out.println("Удалена закладка  " + currentProfile[1] + ": " + listPaneAll.get(indexBookmark).getLinkSite() +
-                "\nСайты в закладках " + currentProfile[1] + ": " + Arrays.deepToString(db.queryResult(
+                "\nСайты в закладках " + currentProfile[1] + ": " + Arrays.deepToString(new ArrayList[]{client.query(
                 "SELECT s.link " +
-                        "FROM dfo34hv66rtq0v.public.sites s, dfo34hv66rtq0v.public.profiles p " +
+                        "FROM sites s, profiles p " +
                         "WHERE p.id_profile = " + currentProfile[0] +
-                        " AND s.id_site = ANY(p.ids_bookmark)")));
+                        " AND s.id_site = ANY(p.ids_bookmark)")}));
     }
 
     private void verifyAuthorization() {
         String[] verification = new String[2];
 
         textLogin.setOnKeyReleased(event -> {
-            String[][] profiles = db.queryResult("SELECT * FROM dfo34hv66rtq0v.public.profiles");
+            ArrayList<String[]> profiles = client.query("SELECT * FROM profiles");
+
             verification[0] = textLogin.getText();
 
-            for (int i = 0; i < profiles.length; i++) {
-                if (Objects.equals(verification[0], profiles[i][1]) && Objects.equals(verification[1], profiles[i][2])) {
-                    currentProfile = profiles[i];
+            for (int i = 0; i < profiles.size(); i++) {
+                if (Objects.equals(verification[0], profiles.get(i)[1]) && Objects.equals(verification[1], profiles.get(i)[2])) {
+                    currentProfile = profiles.get(i);
                     setAnchorNavProfile(true);
                     verification[0] = "";
 
-                    String[][] bookmarks = db.queryResult(
+                    ArrayList<String[]> bookmarks = client.query(
                             "SELECT s.link " +
-                                    "FROM dfo34hv66rtq0v.public.sites s, dfo34hv66rtq0v.public.profiles p " +
+                                    "FROM sites s, profiles p " +
                                     "WHERE p.id_profile = " + currentProfile[0] +
                                     " AND s.id_site = ANY(p.ids_bookmark)");
 
                     for (int j = 0; j < listPaneAll.size(); j++)
-                        for (int k = 0; k < bookmarks.length; k++)
-                            if (Objects.equals(listPaneAll.get(j).getLinkSite(), bookmarks[k][0])) {
+                        for (int k = 0; k < bookmarks.size(); k++)
+                            if (Objects.equals(listPaneAll.get(j).getLinkSite(), bookmarks.get(k)[0])) {
                                 isBookmark[j] = true;
                                 int size = listPaneAll.get(j).getPane().getChildren().size();
                                 listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().remove(2);
@@ -517,24 +524,25 @@ public class Controller {
         });
 
         textPassword.setOnKeyReleased(event -> {
-            String[][] profiles = db.queryResult("SELECT * FROM dfo34hv66rtq0v.public.profiles");
+            ArrayList<String[]> profiles =  client.query("SELECT * FROM profiles");
+
             verification[1] = textPassword.getText();
 
-            for (int i = 0; i < profiles.length; i++) {
-                if (Objects.equals(verification[1], profiles[i][2]) && Objects.equals(verification[0], profiles[i][1])) {
-                    currentProfile = profiles[i];
+            for (int i = 0; i < profiles.size(); i++) {
+                if (Objects.equals(verification[1], profiles.get(i)[2]) && Objects.equals(verification[0], profiles.get(i)[1])) {
+                    currentProfile = profiles.get(i);
                     setAnchorNavProfile(true);
                     verification[1] = "";
 
-                    String[][] bookmarks = db.queryResult(
+                    ArrayList<String[]> bookmarks = client.query(
                             "SELECT s.link " +
-                                    "FROM dfo34hv66rtq0v.public.sites s, dfo34hv66rtq0v.public.profiles p " +
+                                    "FROM sites s, profiles p " +
                                     "WHERE p.id_profile = " + currentProfile[0] +
                                     " AND s.id_site = ANY(p.ids_bookmark)");
 
                     for (int j = 0; j < listPaneAll.size(); j++)
-                        for (int k = 0; k < bookmarks.length; k++)
-                            if (Objects.equals(listPaneAll.get(j).getLinkSite(), bookmarks[k][0])) {
+                        for (int k = 0; k < bookmarks.size(); k++)
+                            if (Objects.equals(listPaneAll.get(j).getLinkSite(), bookmarks.get(k)[0])) {
                                 isBookmark[j] = true;
                                 int size = listPaneAll.get(j).getPane().getChildren().size();
                                 listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().remove(2);
@@ -580,7 +588,9 @@ public class Controller {
             labelReg.setVisible(false);
 
             labelProfileTitle.setText("Добро пожаловать, " +
-                    (!currentProfile[4].isEmpty() && !currentProfile[3].isEmpty() ? currentProfile[4] + " " + currentProfile[3] : currentProfile[1])
+                    (!currentProfile[4].isEmpty() && !currentProfile[3].isEmpty()
+                            ? (currentProfile[4] + " " + currentProfile[3])
+                            : currentProfile[1])
                     + "!");
             labelProfileTitle.setFont(new Font(12));
             labelProfileTitle.setLayoutX(15);
@@ -676,13 +686,12 @@ public class Controller {
                 labelReg.setLayoutX(72);
                 labelReg.setLayoutY(255);
 
-                String[][] profiles = db.queryResult(
-                        "SELECT login, email FROM dfo34hv66rtq0v.public.profiles");
+                ArrayList<String[]> profiles = client.query("get_logins_emails");
 
                 boolean validated = false;
 
-                for (int i = 0; i < profiles.length; i++) {
-                    if (Objects.equals(profiles[i][0], textRegLogin.getText())) {
+                for (int i = 0; i < profiles.size(); i++) {
+                    if (Objects.equals(profiles.get(i)[0], textRegLogin.getText())) {
                         textRegLogin.setText("");
                         labelReg.setVisible(true);
                         labelReg.setText("Этот логин уже существует");
@@ -705,8 +714,8 @@ public class Controller {
 
                 if (validated) {
 
-                    for (int i = 0; i < profiles.length; i++) {
-                        if (Objects.equals(profiles[i][1], textRegEmail.getText())) {
+                    for (int i = 0; i < profiles.size(); i++) {
+                        if (Objects.equals(profiles.get(i)[1], textRegEmail.getText())) {
                             textRegEmail.setText("");
                             labelReg.setVisible(true);
                             labelReg.setText("Этот email уже зарегистрирован");
@@ -748,21 +757,16 @@ public class Controller {
                         }
 
                         if (validated) {
-                            db.query(
-                                    "INSERT INTO dfo34hv66rtq0v.public.profiles(login, password, last_name, first_name, email) " +
-                                            "VALUES('" +
-                                            textRegLogin.getText() + "', '" +
-                                            textRegPass1.getText() + "', '" +
-                                            textRegLName.getText() + "', '" +
-                                            textRegFName.getText() + "', '" +
-                                            textRegEmail.getText() + "')");
+                            client.query(false,
+                                    "add_profile," +
+                                            textRegLogin.getText() + "," +
+                                            textRegPass1.getText() + "," +
+                                            textRegLName.getText() + "," +
+                                            textRegFName.getText() + "," +
+                                            textRegEmail.getText() + "_5");
 
                             // TODO: 25.10.2017 REGISTRATION
-                            System.out.println("Добавлен пользователь: " +
-                                    Arrays.toString(db.queryResult(
-                                            "SELECT * " +
-                                                    "FROM dfo34hv66rtq0v.public.profiles " +
-                                                    "WHERE login = '" + textRegLogin.getText() + "'")[0]));
+                            System.out.println("Добавлен пользователь: " + textRegLogin.getText());
 
                             setAnchorNavProfile(false);
                         }
