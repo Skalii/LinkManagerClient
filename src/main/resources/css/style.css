@@ -50,6 +50,7 @@
 *
 *       ANCHOR PANES NAVIGATION END
 *
+*       ////////////////////////
 *
 *       ANCHOR PANES SITES START
 *
@@ -91,6 +92,7 @@
 *
 *       ANCHOR PANES SITES END
 *
+*       ////////////////////////
 *
 *       MENU-BAR START
 *
@@ -134,6 +136,7 @@
 *
 *       MENU-BAR END
 *
+*       ////////////////////////
 *
 *       COMBO-BOX START
 *
@@ -175,6 +178,7 @@
 *
 *       COMBO-BOX END
 *
+*       ////////////////////////
 *
 *       IMAGE-VIEW START
 *
@@ -225,26 +229,19 @@
     -fx-image: url("/icons/anchorsite/bookmark_focus_no.png");
 }
 
-.image-view-link {
-    -fx-image: url("/icons/anchorsite/link_focus_no.png");
+.image-view-link-share {
+    -fx-image: url("/icons/anchorsite/link_share_focus_no.png");
 }
 
-.image-view-link:hover {
-    -fx-image: url("/icons/anchorsite/link_focus_yes.png");
-}
-
-.image-view-share {
-    -fx-image: url("/icons/anchorsite/share_focus_no.png");
-}
-
-.image-view-share:hover {
-    -fx-image: url("/icons/anchorsite/share_focus_yes.png");
+.image-view-link-share:hover {
+    -fx-image: url("/icons/anchorsite/link_share_focus_yes.png");
 }
 
 /*
 *
 *       IMAGE-VIEW END
 *
+*       ////////////////////////
 *
 *       BUTTON START
 *
@@ -268,6 +265,7 @@
 *
 *       BUTTON END
 *
+*       ////////////////////////
 *
 *       TEXT-FIELD START
 *

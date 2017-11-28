@@ -29,7 +29,7 @@ public class Pane {
     private AnchorPane pane;
 
     @FXML
-    private ImageView imageIcon, imageShare, imageLink;
+    private ImageView imageIcon, imageLinkShare;
 
     @FXML
     private TextArea textInfo;
@@ -45,16 +45,21 @@ public class Pane {
     }
 
     private void createAnchorPane() {
+        pane = new AnchorPane();
+        pane.setPrefWidth(470);
+        pane.setPrefHeight(240);
+        pane.getStyleClass().add("anchor-sites");
+
         imageIcon = new ImageView(new Image(connect.getLinkIcon()));
-        imageIcon.setFitHeight(20);
         imageIcon.setFitWidth(20);
-        imageIcon.setLayoutY(6);
+        imageIcon.setFitHeight(20);
         imageIcon.setLayoutX(10);
+        imageIcon.setLayoutY(6);
 
         labelSite = new Label(connect.getTitle());
         labelSite.setPrefWidth(400);
-        labelSite.setLayoutY(5);
         labelSite.setLayoutX(40);
+        labelSite.setLayoutY(5);
         labelSite.setFont(Font.font("Calibri", FontWeight.BOLD, 20));
 
         textInfo = new TextArea();
@@ -64,21 +69,40 @@ public class Pane {
                 if (!Objects.equals(connect.getInfo()[i], null))
                     textInfo.setText(textInfo.getText() + connect.getInfo()[i]);
             }
-            textInfo.setPrefHeight(160);
             textInfo.setPrefWidth(450);
-            textInfo.setLayoutY(40);
+            textInfo.setPrefHeight(160);
             textInfo.setLayoutX(10);
+            textInfo.setLayoutY(40);
             textInfo.setEditable(false);
         }
 
-        imageLink = new ImageView();
-        imageLink.setFitHeight(20);
-        imageLink.setFitWidth(20);
-        imageLink.setLayoutY(210);
-        imageLink.setLayoutX(15);
-        imageLink.getStyleClass().add("image-view-control");
-        imageLink.getStyleClass().add("image-view-link");
-        imageLink.setOnMouseClicked(event -> {
+        labelSiteOpenBrow = new Label("Открыть в браузере");
+        labelSiteOpenBrow.setCursor(Cursor.HAND);
+        labelSiteOpenBrow.setLayoutX(10);
+        labelSiteOpenBrow.setLayoutY(215);
+        labelSiteOpenBrow.setFont(Font.font("Calibri", FontWeight.BOLD, 12));
+        labelSiteOpenBrow.setTextFill(BLUE);
+        labelSiteOpenBrow.setOnMouseClicked(event -> {
+            try {
+                Desktop.getDesktop().browse(new URI(connect.getLinkSite()));
+            } catch (IOException | URISyntaxException e) {
+                e.printStackTrace();
+            }
+        });
+
+        labelSectionCategory = new Label(" | " + section + " | " + category);
+        labelSectionCategory.setLayoutX(labelSiteOpenBrow.getLayoutX() + labelSiteOpenBrow.getText().length() * 5 + 15);
+        labelSectionCategory.setLayoutY(215);
+        labelSectionCategory.setFont(Font.font("Calibri", FontWeight.BOLD, 12));
+
+        imageLinkShare = new ImageView();
+        imageLinkShare.setFitWidth(20);
+        imageLinkShare.setFitHeight(20);
+        imageLinkShare.setLayoutX(pane.getPrefWidth() - 30);
+        imageLinkShare.setLayoutY(210);
+        imageLinkShare.getStyleClass().add("image-view-control");
+        imageLinkShare.getStyleClass().add("image-view-link-share");
+        imageLinkShare.setOnMouseClicked(event -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Адрес сайта");
             alert.setHeaderText(connect.getTitle());
@@ -100,40 +124,8 @@ public class Pane {
             alert.showAndWait();
         });
 
-        labelSiteOpenBrow = new Label("Открыть в браузере");
-        labelSiteOpenBrow.setCursor(Cursor.HAND);
-        labelSiteOpenBrow.setLayoutY(215);
-        labelSiteOpenBrow.setLayoutX(45);
-        labelSiteOpenBrow.setFont(Font.font("Calibri", FontWeight.BOLD, 12));
-        labelSiteOpenBrow.setTextFill(BLUE);
-        labelSiteOpenBrow.setOnMouseClicked(event -> {
-            try {
-                Desktop.getDesktop().browse(new URI(connect.getLinkSite()));
-            } catch (IOException | URISyntaxException e) {
-                e.printStackTrace();
-            }
-        });
-
-        labelSectionCategory = new Label(" | " + section + " | " + category);
-        labelSectionCategory.setLayoutY(215);
-        labelSectionCategory.setLayoutX(45 + labelSiteOpenBrow.getText().length() * 5 + 15);
-        labelSectionCategory.setFont(Font.font("Calibri", FontWeight.BOLD, 12));
-
-        imageShare = new ImageView();
-        imageShare.setFitHeight(20);
-        imageShare.setFitWidth(20);
-        imageShare.setLayoutY(215);
-        imageShare.setLayoutX(440);
-        imageShare.getStyleClass().add("image-view-control");
-        imageShare.getStyleClass().add("image-view-share");
-
-        pane = new AnchorPane();
-        pane.setPrefHeight(240);
-        pane.setPrefWidth(470);
-        pane.getStyleClass().add("anchor-sites");
-
         pane.getChildren().addAll(imageIcon, labelSite, textInfo,
-                imageLink, labelSiteOpenBrow, labelSectionCategory, imageShare);
+                labelSiteOpenBrow, labelSectionCategory, imageLinkShare);
     }
 
     public AnchorPane getPane() {

@@ -7,6 +7,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -25,7 +26,7 @@ public class Controller {
     private ImageView imageTitle, imageMinimize, imageClose;
 
     @FXML
-    private MenuItem menuNewWindow, menuClose, menuHide, menuExit;
+    private MenuItem menuNewWindow, menuCloseWindow, menuHide, menuExit, menuAbout;
 
     @FXML
     private AnchorPane anchorSitesParent, anchorNavSort, anchorNavSearch, anchorNavProfile;
@@ -86,13 +87,47 @@ public class Controller {
                 e.printStackTrace();
             }
         });
-        menuClose.setOnAction(event -> {
+        menuCloseWindow.setOnAction(event -> {
             Platform.setImplicitExit(true);
             Main.systemTray[indexThisStage].remove(Main.trayIcon[indexThisStage]);
             Main.parent[indexThisStage].close();
+
+            boolean exit = true;
+            for (int i = 0; i < Main.parent.length; i++) {
+                try {
+                    if (Main.parent[i].isShowing() || Main.parent[i].isIconified()) {
+                        exit = false;
+                    }
+                } catch (NullPointerException ignored) {
+                }
+            }
+            if (exit) {
+                System.exit(0);
+            }
         });
         menuHide.setOnAction(event -> Main.parent[indexThisStage].hide());
         menuExit.setOnAction(event -> System.exit(0));
+        menuAbout.setOnAction(event -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("О программе");
+            alert.setHeaderText("Менеджер ссылок");
+            alert.getButtonTypes().setAll(ButtonType.OK);
+
+            Label label = new Label("Самостоятельная работа\nСтудента гр.341(б)\nСкалий Дмитрия");
+            label.setWrapText(true);
+            label.setAlignment(Pos.CENTER);
+            label.setPrefHeight(70);
+            label.setPrefWidth(220);
+            label.setLayoutY(15);
+            label.setLayoutX(15);
+
+            AnchorPane pane = new AnchorPane(label);
+            pane.setPrefHeight(100);
+            pane.setPrefWidth(250);
+
+            alert.getDialogPane().setContent(pane);
+            alert.showAndWait();
+        });
 
         sections = setSections();
         categoryInfobase = setCategory(1);
