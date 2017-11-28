@@ -18,7 +18,7 @@
 <?import javafx.scene.text.Font?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
-            prefWidth="750.0" styleClass="back" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/8.0.111"
+            prefWidth="750.0" styleClass="back" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/8.0.141"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.skaliy.linkmanager.client.fxapp.Controller">
     <children>
         <MenuBar layoutX="-8.0" prefHeight="27.0" prefWidth="766.0">
@@ -124,6 +124,14 @@
                 <TextField fx:id="textLogin" layoutX="37.0" layoutY="105.0" prefWidth="150.0" promptText="Логин"/>
                 <PasswordField fx:id="textPassword" layoutX="37.0" layoutY="140.0" prefWidth="150.0"
                                promptText="Пароль"/>
+                <Button fx:id="buttonProfileLogin" layoutX="87.0" layoutY="175.0" mnemonicParsing="false"
+                        prefWidth="50.0" text="Вход"/>
+                <Label fx:id="labelVerifyError" alignment="CENTER" layoutX="10.0" layoutY="210.0" prefWidth="205.0"
+                       text="ошибка" textFill="#d83a3a" visible="false">
+                    <font>
+                        <Font name="System Italic" size="12.0"/>
+                    </font>
+                </Label>
                 <Button fx:id="buttonProfileBookmarks" layoutX="65.0" layoutY="190.0" mnemonicParsing="false"
                         prefWidth="95.0" text="Мои закладки" visible="false"/>
                 <Button fx:id="buttonProfileLogOut" layoutX="82.0" layoutY="230.0" mnemonicParsing="false"

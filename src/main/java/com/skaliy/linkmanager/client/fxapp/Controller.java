@@ -34,7 +34,7 @@ public class Controller {
     private ComboBox<String> comboSections, comboCategories;
 
     @FXML
-    private Label labelSort, labelProfileTitle, labelReg;
+    private Label labelSort, labelProfileTitle, labelReg, labelVerifyError;
 
     @FXML
     private TextField textSearch, textLogin, textRegLogin, textRegEmail, textRegFName, textRegLName;
@@ -43,7 +43,7 @@ public class Controller {
     private PasswordField textPassword, textRegPass1, textRegPass2;
 
     @FXML
-    private Button buttonProfileLogOut, buttonProfileBookmarks, buttonReg;
+    private Button buttonProfileLogin, buttonProfileLogOut, buttonProfileBookmarks, buttonReg;
 
     private static ObservableList<Connect> listConnectInfoBase, listConnectProgramming, listConnectReading;
     private ObservableList<Pane> listPaneAll, listPaneCurrent,
@@ -268,7 +268,7 @@ public class Controller {
     }
 
     private String[] setCategory(int index) {
-        ArrayList<String[]> records = client.query("get_category_" + index);
+        ArrayList<String[]> records = client.query("get_category_p-" + index);
         String[] result = new String[records.size()];
 
         for (int i = 0; i < records.size(); i++)
@@ -336,7 +336,7 @@ public class Controller {
         ObservableList<Connect> connectSites = FXCollections.observableArrayList();
 
         ArrayList<String[]> infoBase = client.query(
-                "get_list_connects_" + id_section);
+                "get_list_connects_p-" + id_section);
 
         int i = 0;
         for (String[] anInfoBase : infoBase) {
@@ -352,13 +352,13 @@ public class Controller {
     private ObservableList<Pane> setListPanes(ObservableList<Connect> connectSites, int id_section) {
         ObservableList<Pane> anchorSites = FXCollections.observableArrayList();
 
-        ArrayList<String[]> infoBase = client.query("get_list_from_section_" + id_section);
+        ArrayList<String[]> infoBase = client.query("get_list_from_section_p-" + id_section);
 
         for (int i = 0; i < connectSites.size(); i++) {
             anchorSites.add(
                     new Pane(connectSites.get(i),
                             sections[id_section - 1],
-                            client.query("get_category_from_" + infoBase.get(i)[1]).get(0)[0]));
+                            client.query("get_category_from_p-" + infoBase.get(i)[1]).get(0)[0]));
 
             anchorSites.get(i).getPane().getChildren().add(createBookmark());
 
@@ -379,7 +379,7 @@ public class Controller {
         listPaneCurrent = FXCollections.observableArrayList();
         int layoutY = 10;
 
-        ArrayList<String[]> bookmarks = client.query("get_bookmarks_from_" + currentProfile[0]);
+        ArrayList<String[]> bookmarks = client.query("get_bookmarks_from_p-" + currentProfile[0]);
 
         // TODO: 25.10.2017 BOOKMARKS
         System.out.println("Сайты в закладках " + currentProfile[1] + ": " + Arrays.deepToString(new ArrayList[]{bookmarks}));
@@ -444,12 +444,12 @@ public class Controller {
                 "add_bookmark," + currentProfile[0]
                         + "," + listPaneAll.get(indexBookmark).getLinkSite());
 
-        currentProfile[7] = client.query("get_bookmarks_ids_from_" + currentProfile[0]).get(0)[0];
+        currentProfile[7] = client.query("get_bookmarks_ids_from_p-" + currentProfile[0]).get(0)[0];
 
         // TODO: 25.10.2017 ADD BOOKMARK
         System.out.println("Добавлена закладка " + currentProfile[1] + ": " + listPaneAll.get(indexBookmark).getLinkSite() +
                 "\nСайты в закладках  " + currentProfile[1] + ": " + Arrays.deepToString(new ArrayList[]{client.query(
-                "get_bookmarks_from_" + currentProfile[0])}));
+                "get_bookmarks_from_p-" + currentProfile[0])}));
     }
 
     private void removeBookmark(int indexBookmark) throws SQLException {
@@ -457,83 +457,93 @@ public class Controller {
                 "delete_bookmark," + currentProfile[0]
                         + "," + listPaneAll.get(indexBookmark).getLinkSite());
 
-        currentProfile[7] = client.query("get_bookmarks_ids_from_" + currentProfile[0]).get(0)[0];
+        currentProfile[7] = client.query("get_bookmarks_ids_from_p-" + currentProfile[0]).get(0)[0];
 
         // TODO: 25.10.2017 REMOVE BOOKMARK
         System.out.println("Удалена закладка  " + currentProfile[1] + ": " + listPaneAll.get(indexBookmark).getLinkSite() +
                 "\nСайты в закладках " + currentProfile[1] + ": " + Arrays.deepToString(new ArrayList[]{client.query(
-                "get_bookmarks_from_" + currentProfile[0])}));
+                "get_bookmarks_from_p-" + currentProfile[0])}));
     }
 
     private void verifyAuthorization() {
-        String[] verification = new String[2];
+        String[] verifications = new String[2];
+        boolean[] isVerificated = new boolean[2];
 
-        textLogin.setOnKeyReleased(event -> {
-            ArrayList<String[]> profiles = client.query("get_profiles");
+        buttonProfileLogin.setOnAction(event -> {
 
-            verification[0] = textLogin.getText();
+            if (!textLogin.getText().isEmpty()) {
+                if (!textPassword.getText().isEmpty()) {
+                    labelVerifyError.setVisible(false);
 
-            for (int i = 0; i < profiles.size(); i++) {
+                    verifications[0] = textLogin.getText();
 
-                if (Objects.equals(verification[0], profiles.get(i)[1])
-                        && Objects.equals(verification[1], profiles.get(i)[2])) {
+                    isVerificated[0] = Objects.equals(verifications[0],
+                            client.query("get_login_p-" + verifications[0]).get(0)[0]);
 
-                    currentProfile = profiles.get(i);
-                    setAnchorNavProfile(true);
-                    verification[0] = "";
+                    if (isVerificated[0]) {
 
-                    ArrayList<String[]> bookmarks = client.query("get_bookmarks_from_" + currentProfile[0]);
+                        verifications[1] = textPassword.getText();
 
-                    for (int j = 0; j < listPaneAll.size(); j++)
-                        for (int k = 0; k < bookmarks.size(); k++)
-                            if (Objects.equals(listPaneAll.get(j).getLinkSite(), bookmarks.get(k)[0])) {
-                                isBookmark[j] = true;
-                                int size = listPaneAll.get(j).getPane().getChildren().size();
-                                listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().remove(2);
-                                listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().add("image-view-bookmark-selected");
+                        isVerificated[1] = Objects.equals(verifications[1],
+                                client.query("get_pass_login_c-L = '" + verifications[0]
+                                        + "';P = '" + verifications[1] + "'").get(0)[0]);
+
+                        if (isVerificated[1]) {
+
+                            currentProfile = client.query("get_profile_c-L = '" + verifications[0]
+                                    + "';P = '" + verifications[1] + "'").get(0);
+
+                            setAnchorNavProfile(true);
+
+                            ArrayList<String[]> bookmarks = client.query("get_bookmarks_from_p-" + currentProfile[0]);
+
+                            for (int j = 0; j < listPaneAll.size(); j++)
+                                for (String[] bookmark : bookmarks)
+                                    if (Objects.equals(listPaneAll.get(j).getLinkSite(), bookmark[0])) {
+                                        isBookmark[j] = true;
+                                        int size = listPaneAll.get(j).getPane().getChildren().size();
+                                        listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().remove(2);
+                                        listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().add("image-view-bookmark-selected");
+                                    }
+
+                            // TODO: 25.10.2017 LOGIN
+                            System.out.println("Выполнен вход: " + Arrays.toString(currentProfile));
+
+                            for (int i = 0; i < 2; i++) {
+                                verifications[i] = "";
+                                isVerificated[i] = false;
                             }
 
-                    // TODO: 25.10.2017 LOGIN
-                    System.out.println("Выполнен вход: " + Arrays.toString(currentProfile));
-                    break;
+                            buttonProfileLogin.setVisible(false);
+
+                        } else {
+                            labelVerifyError.setText("Неправильный логин или пароль");
+                            labelVerifyError.setVisible(true);
+                        }
+
+                    } else {
+                        labelVerifyError.setText("Неправильный логин или пароль");
+                        labelVerifyError.setVisible(true);
+                    }
+
+                } else {
+                    labelVerifyError.setText("Введите пароль");
+                    labelVerifyError.setVisible(true);
                 }
+            } else {
+                labelVerifyError.setText("Введите логин");
+                labelVerifyError.setVisible(true);
             }
+
         });
 
-        textPassword.setOnKeyReleased(event -> {
-            ArrayList<String[]> profiles = client.query("get_profiles");
-
-            verification[1] = textPassword.getText();
-
-            for (int i = 0; i < profiles.size(); i++) {
-
-                if (Objects.equals(verification[1], profiles.get(i)[2])
-                        && Objects.equals(verification[0], profiles.get(i)[1])) {
-
-                    currentProfile = profiles.get(i);
-                    setAnchorNavProfile(true);
-                    verification[1] = "";
-
-                    ArrayList<String[]> bookmarks = client.query("get_bookmarks_from_" + currentProfile[0]);
-
-                    for (int j = 0; j < listPaneAll.size(); j++)
-                        for (int k = 0; k < bookmarks.size(); k++)
-                            if (Objects.equals(listPaneAll.get(j).getLinkSite(), bookmarks.get(k)[0])) {
-                                isBookmark[j] = true;
-                                int size = listPaneAll.get(j).getPane().getChildren().size();
-                                listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().remove(2);
-                                listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().add("image-view-bookmark-selected");
-                            }
-
-                    // TODO: 25.10.2017 LOGIN
-                    System.out.println("Выполнен вход: " + Arrays.toString(currentProfile));
-                    break;
-                }
-            }
-        });
+        textLogin.setOnAction(buttonProfileLogin.getOnAction());
+        textPassword.setOnAction(buttonProfileLogin.getOnAction());
     }
 
     private void logOut() {
+        buttonProfileLogin.setVisible(true);
+
         comboSections.getSelectionModel().clearSelection();
         comboCategories.getItems().remove(1, comboCategories.getItems().size());
         comboCategories.setDisable(true);
@@ -630,6 +640,8 @@ public class Controller {
         labelReg.setVisible(false);
         textLogin.setVisible(false);
         textPassword.setVisible(false);
+        buttonProfileLogin.setVisible(false);
+        labelVerifyError.setVisible(false);
 
         buttonProfileLogOut.setVisible(true);
         buttonReg.setVisible(true);
@@ -745,10 +757,12 @@ public class Controller {
                             System.out.println("Добавлен пользователь: " + textRegLogin.getText());
 
                             setAnchorNavProfile(false);
+                            buttonProfileLogin.setVisible(true);
                         }
                     }
                 }
             }
         });
     }
+
 }

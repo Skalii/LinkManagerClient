@@ -14,6 +14,10 @@ public class ClientHandler extends ChannelInboundMessageHandlerAdapter<String> {
     @Override
     public void messageReceived(ChannelHandlerContext channelHandlerContext, String message) throws Exception {
 
+        if (message.startsWith("[SERVER] - accepted the query: ")) {
+            return;
+        }
+
         if (message.startsWith("[SERVER] - query state: ")) {
             resultSize = 1;
             return;
@@ -28,6 +32,7 @@ public class ClientHandler extends ChannelInboundMessageHandlerAdapter<String> {
         String[] record = message
                 .substring(1, message.length() - 1)
                 .split(", ");
+
         queryResult.add(record);
 
         if (queryResult.size() == resultSize) {
