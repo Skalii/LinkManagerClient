@@ -157,7 +157,75 @@ public class Controller {
         textSearch.setOnKeyReleased(event -> searchSites(textSearch.getText()));
 
         labelReg.setOnMouseClicked(event -> setAnchorNavRegistration());
-        verifyAuthorization();
+        buttonProfileLogin.setOnAction(event -> {
+            String[] verifications = new String[2];
+            boolean[] isVerificated = new boolean[2];
+
+            if (!textLogin.getText().isEmpty()) {
+                if (!textPassword.getText().isEmpty()) {
+                    labelVerifyError.setVisible(false);
+
+                    verifications[0] = textLogin.getText();
+
+                    isVerificated[0] = Objects.equals(verifications[0],
+                            client.query("get_login_p-" + verifications[0]).get(0)[0]);
+
+                    if (isVerificated[0]) {
+
+                        verifications[1] = textPassword.getText();
+
+                        isVerificated[1] = Objects.equals(verifications[1],
+                                client.query("get_pass_login_c-L = '" + verifications[0]
+                                        + "';P = '" + verifications[1] + "'").get(0)[0]);
+
+                        if (isVerificated[1]) {
+
+                            currentProfile = client.query("get_profile_c-L = '" + verifications[0]
+                                    + "';P = '" + verifications[1] + "'").get(0);
+
+                            setAnchorNavProfile(true);
+
+                            ArrayList<String[]> bookmarks = client.query("get_bookmarks_from_p-" + currentProfile[0]);
+
+                            for (int j = 0; j < listPaneAll.size(); j++)
+                                for (String[] bookmark : bookmarks)
+                                    if (Objects.equals(listPaneAll.get(j).getLinkSite(), bookmark[0])) {
+                                        isBookmark[j] = true;
+                                        int size = listPaneAll.get(j).getPane().getChildren().size();
+                                        listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().remove(2);
+                                        listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().add("image-view-bookmark-selected");
+                                    }
+
+                            // TODO: 25.10.2017 LOGIN
+                            System.out.println("Выполнен вход: " + Arrays.toString(currentProfile));
+
+                            for (int i = 0; i < 2; i++) {
+                                verifications[i] = "";
+                                isVerificated[i] = false;
+                            }
+
+                            buttonProfileLogin.setVisible(false);
+
+                        } else {
+                            labelVerifyError.setText("Неправильный логин или пароль");
+                            labelVerifyError.setVisible(true);
+                        }
+
+                    } else {
+                        labelVerifyError.setText("Неправильный логин или пароль");
+                        labelVerifyError.setVisible(true);
+                    }
+
+                } else {
+                    labelVerifyError.setText("Введите пароль");
+                    labelVerifyError.setVisible(true);
+                }
+            } else {
+                labelVerifyError.setText("Введите логин");
+                labelVerifyError.setVisible(true);
+            }
+
+        });
         buttonProfileLogOut.setOnAction(event -> logOut());
         buttonProfileBookmarks.setOnAction(event -> {
             try {
@@ -167,6 +235,89 @@ public class Controller {
                 e.printStackTrace();
             }
         });
+        buttonReg.setOnAction(event -> {
+            if (textRegLogin.getText().isEmpty() || textRegEmail.getText().isEmpty()
+                    || textRegPass1.getText().isEmpty() || textRegPass2.getText().isEmpty()) {
+                labelReg.setVisible(true);
+                labelReg.setText("Обязательные поля пустые");
+                labelReg.setTextFill(Paint.valueOf("#d83a3a"));
+                labelReg.setLayoutX(27);
+                labelReg.setLayoutY(255);
+            } else {
+                labelReg.setVisible(false);
+                labelReg.setText("Регистрация");
+                labelReg.setTextFill(Paint.valueOf("#3a3cda"));
+                labelReg.setLayoutX(72);
+                labelReg.setLayoutY(255);
+
+                if (Objects.equals(client.query("get_login_p-" + textRegLogin.getText()).get(0)[0],
+                        textRegLogin.getText())) {
+                    textRegLogin.setText("");
+                    labelReg.setVisible(true);
+                    labelReg.setText("Этот логин уже существует");
+                    labelReg.setTextFill(Paint.valueOf("#d83a3a"));
+                    labelReg.setLayoutX(20);
+                    labelReg.setLayoutY(255);
+                    return;
+                }
+
+                labelReg.setVisible(false);
+                labelReg.setText("Регистрация");
+                labelReg.setTextFill(Paint.valueOf("#3a3cda"));
+                labelReg.setLayoutX(72);
+                labelReg.setLayoutY(255);
+
+                if (Objects.equals(client.query("get_email_p-" + textRegEmail.getText()).get(0)[0],
+                        textRegEmail.getText())) {
+                    textRegEmail.setText("");
+                    labelReg.setVisible(true);
+                    labelReg.setText("Этот email уже зарегистрирован");
+                    labelReg.setTextFill(Paint.valueOf("#d83a3a"));
+                    labelReg.setLayoutX(10);
+                    labelReg.setLayoutY(255);
+                    return;
+                }
+
+                labelReg.setVisible(false);
+                labelReg.setText("Регистрация");
+                labelReg.setTextFill(Paint.valueOf("#3a3cda"));
+                labelReg.setLayoutX(72);
+                labelReg.setLayoutY(255);
+
+                if (!Objects.equals(textRegPass1.getText(), textRegPass2.getText())) {
+                    labelReg.setVisible(true);
+                    labelReg.setText("Пароли не совпадают");
+                    labelReg.setTextFill(Paint.valueOf("#d83a3a"));
+                    labelReg.setLayoutX(45);
+                    labelReg.setLayoutY(255);
+                    return;
+                } else {
+                    labelReg.setVisible(false);
+                    labelReg.setText("Регистрация");
+                    labelReg.setTextFill(Paint.valueOf("#3a3cda"));
+                    labelReg.setLayoutX(72);
+                    labelReg.setLayoutY(255);
+                }
+
+                client.query(false,
+                        "add_profile," +
+                                textRegLogin.getText() + "," +
+                                textRegPass1.getText() + "," +
+                                textRegLName.getText() + "," +
+                                textRegFName.getText() + "," +
+                                textRegEmail.getText());
+
+                // TODO: 25.10.2017 REGISTRATION
+                System.out.println("Добавлен пользователь: " + textRegLogin.getText());
+
+                setAnchorNavProfile(false);
+                buttonProfileLogin.setVisible(true);
+            }
+        });
+
+        cloneAction(buttonProfileLogin, textLogin, textPassword);
+        cloneAction(buttonReg, textRegLogin, textRegPass1, textRegPass2,
+                textRegLName, textRegFName, textRegEmail);
 
         comboSections.getItems().setAll("- выбор -");
         comboSections.getItems().addAll(sections);
@@ -421,8 +572,8 @@ public class Controller {
 
         for (int i = 0, index = 0; i < sites.length; i++)
             for (int j = 0; j < sites[i].size(); j++)
-                for (int k = 0; k < bookmarks.size(); k++)
-                    if (Objects.equals(sites[i].get(j).getLinkSite(), bookmarks.get(k)[0])) {
+                for (String[] bookmark : bookmarks)
+                    if (Objects.equals(sites[i].get(j).getLinkSite(), bookmark[0])) {
                         anchorSitesParent.getChildren().add(sites[i].get(j).getPane());
                         anchorSitesParent.getChildren().get(index).setLayoutY(layoutY);
                         anchorSitesParent.getChildren().get(index).setLayoutX(10);
@@ -498,82 +649,6 @@ public class Controller {
         System.out.println("Удалена закладка  " + currentProfile[1] + ": " + listPaneAll.get(indexBookmark).getLinkSite() +
                 "\nСайты в закладках " + currentProfile[1] + ": " + Arrays.deepToString(new ArrayList[]{client.query(
                 "get_bookmarks_from_p-" + currentProfile[0])}));
-    }
-
-    private void verifyAuthorization() {
-        String[] verifications = new String[2];
-        boolean[] isVerificated = new boolean[2];
-
-        buttonProfileLogin.setOnAction(event -> {
-
-            if (!textLogin.getText().isEmpty()) {
-                if (!textPassword.getText().isEmpty()) {
-                    labelVerifyError.setVisible(false);
-
-                    verifications[0] = textLogin.getText();
-
-                    isVerificated[0] = Objects.equals(verifications[0],
-                            client.query("get_login_p-" + verifications[0]).get(0)[0]);
-
-                    if (isVerificated[0]) {
-
-                        verifications[1] = textPassword.getText();
-
-                        isVerificated[1] = Objects.equals(verifications[1],
-                                client.query("get_pass_login_c-L = '" + verifications[0]
-                                        + "';P = '" + verifications[1] + "'").get(0)[0]);
-
-                        if (isVerificated[1]) {
-
-                            currentProfile = client.query("get_profile_c-L = '" + verifications[0]
-                                    + "';P = '" + verifications[1] + "'").get(0);
-
-                            setAnchorNavProfile(true);
-
-                            ArrayList<String[]> bookmarks = client.query("get_bookmarks_from_p-" + currentProfile[0]);
-
-                            for (int j = 0; j < listPaneAll.size(); j++)
-                                for (String[] bookmark : bookmarks)
-                                    if (Objects.equals(listPaneAll.get(j).getLinkSite(), bookmark[0])) {
-                                        isBookmark[j] = true;
-                                        int size = listPaneAll.get(j).getPane().getChildren().size();
-                                        listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().remove(2);
-                                        listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().add("image-view-bookmark-selected");
-                                    }
-
-                            // TODO: 25.10.2017 LOGIN
-                            System.out.println("Выполнен вход: " + Arrays.toString(currentProfile));
-
-                            for (int i = 0; i < 2; i++) {
-                                verifications[i] = "";
-                                isVerificated[i] = false;
-                            }
-
-                            buttonProfileLogin.setVisible(false);
-
-                        } else {
-                            labelVerifyError.setText("Неправильный логин или пароль");
-                            labelVerifyError.setVisible(true);
-                        }
-
-                    } else {
-                        labelVerifyError.setText("Неправильный логин или пароль");
-                        labelVerifyError.setVisible(true);
-                    }
-
-                } else {
-                    labelVerifyError.setText("Введите пароль");
-                    labelVerifyError.setVisible(true);
-                }
-            } else {
-                labelVerifyError.setText("Введите логин");
-                labelVerifyError.setVisible(true);
-            }
-
-        });
-
-        textLogin.setOnAction(buttonProfileLogin.getOnAction());
-        textPassword.setOnAction(buttonProfileLogin.getOnAction());
     }
 
     private void logOut() {
@@ -693,111 +768,14 @@ public class Controller {
         textRegLName.setText("");
         textRegPass1.setText("");
         textRegPass2.setText("");
+    }
 
-        buttonReg.setOnAction(event -> {
-            if (textRegLogin.getText().isEmpty() || textRegEmail.getText().isEmpty()
-                    || textRegPass1.getText().isEmpty() || textRegPass2.getText().isEmpty()) {
-                labelReg.setVisible(true);
-                labelReg.setText("Обязательные поля пустые");
-                labelReg.setTextFill(Paint.valueOf("#d83a3a"));
-                labelReg.setLayoutX(27);
-                labelReg.setLayoutY(255);
-            } else {
-                labelReg.setVisible(false);
-                labelReg.setText("Регистрация");
-                labelReg.setTextFill(Paint.valueOf("#3a3cda"));
-                labelReg.setLayoutX(72);
-                labelReg.setLayoutY(255);
+    private void cloneAction(Button button, TextField... textFields) {
 
-                ArrayList<String[]> profiles = client.query("get_logins_emails");
+        for (TextField textField : textFields) {
+            textField.setOnAction(button.getOnAction());
+        }
 
-                boolean validated = false;
-
-                for (int i = 0; i < profiles.size(); i++) {
-                    if (Objects.equals(profiles.get(i)[0], textRegLogin.getText())) {
-                        textRegLogin.setText("");
-                        labelReg.setVisible(true);
-                        labelReg.setText("Этот логин уже существует");
-                        labelReg.setTextFill(Paint.valueOf("#d83a3a"));
-                        labelReg.setLayoutX(20);
-                        labelReg.setLayoutY(255);
-
-                        validated = false;
-                        break;
-                    }
-
-                    labelReg.setVisible(false);
-                    labelReg.setText("Регистрация");
-                    labelReg.setTextFill(Paint.valueOf("#3a3cda"));
-                    labelReg.setLayoutX(72);
-                    labelReg.setLayoutY(255);
-
-                    validated = true;
-                }
-
-                if (validated) {
-
-                    for (int i = 0; i < profiles.size(); i++) {
-                        if (Objects.equals(profiles.get(i)[1], textRegEmail.getText())) {
-                            textRegEmail.setText("");
-                            labelReg.setVisible(true);
-                            labelReg.setText("Этот email уже зарегистрирован");
-                            labelReg.setTextFill(Paint.valueOf("#d83a3a"));
-                            labelReg.setLayoutX(10);
-                            labelReg.setLayoutY(255);
-
-                            validated = false;
-
-                            break;
-                        }
-
-                        labelReg.setVisible(false);
-                        labelReg.setText("Регистрация");
-                        labelReg.setTextFill(Paint.valueOf("#3a3cda"));
-                        labelReg.setLayoutX(72);
-                        labelReg.setLayoutY(255);
-
-                        validated = true;
-                    }
-
-                    if (validated) {
-                        if (!Objects.equals(textRegPass1.getText(), textRegPass2.getText())) {
-                            labelReg.setVisible(true);
-                            labelReg.setText("Пароли не совпадают");
-                            labelReg.setTextFill(Paint.valueOf("#d83a3a"));
-                            labelReg.setLayoutX(45);
-                            labelReg.setLayoutY(255);
-
-                            validated = false;
-                        } else {
-                            labelReg.setVisible(false);
-                            labelReg.setText("Регистрация");
-                            labelReg.setTextFill(Paint.valueOf("#3a3cda"));
-                            labelReg.setLayoutX(72);
-                            labelReg.setLayoutY(255);
-
-                            validated = true;
-                        }
-
-                        if (validated) {
-                            client.query(false,
-                                    "add_profile," +
-                                            textRegLogin.getText() + "," +
-                                            textRegPass1.getText() + "," +
-                                            textRegLName.getText() + "," +
-                                            textRegFName.getText() + "," +
-                                            textRegEmail.getText());
-
-                            // TODO: 25.10.2017 REGISTRATION
-                            System.out.println("Добавлен пользователь: " + textRegLogin.getText());
-
-                            setAnchorNavProfile(false);
-                            buttonProfileLogin.setVisible(true);
-                        }
-                    }
-                }
-            }
-        });
     }
 
 }
