@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public class Controller {
+
     @FXML
     private ImageView imageTitle, imageMinimize, imageClose;
 
@@ -44,7 +45,7 @@ public class Controller {
     private PasswordField textPassword, textRegPass1, textRegPass2;
 
     @FXML
-    private Button buttonProfileLogin, buttonProfileLogOut, buttonProfileBookmarks, buttonReg;
+    private Button buttonProfileLogin, buttonProfileLogOut, buttonProfileBookmarks, buttonProfileRegistration;
 
     private static ObservableList<Connect> listConnectInfoBase, listConnectProgramming, listConnectReading;
     private ObservableList<Pane> listPaneAll, listPaneCurrent,
@@ -129,10 +130,10 @@ public class Controller {
             alert.showAndWait();
         });
 
-        sections = setSections();
-        categoryInfobase = setCategory(1);
-        categoryProgramming = setCategory(2);
-        categoryReading = setCategory(3);
+        sections = setPackagesNames(null);
+        categoryInfobase = setPackagesNames(1);
+        categoryProgramming = setPackagesNames(2);
+        categoryReading = setPackagesNames(3);
         isBookmark = new boolean[Integer.parseInt(client.query("get_count_links").get(0)[0])];
 
 
@@ -158,6 +159,7 @@ public class Controller {
 
         labelReg.setOnMouseClicked(event -> setAnchorNavRegistration());
         buttonProfileLogin.setOnAction(event -> {
+
             String[] verifications = new String[2];
             boolean[] isVerificated = new boolean[2];
 
@@ -226,7 +228,32 @@ public class Controller {
             }
 
         });
-        buttonProfileLogOut.setOnAction(event -> logOut());
+        buttonProfileLogOut.setOnAction(event -> {
+
+            buttonProfileLogin.setVisible(true);
+
+            comboSections.getSelectionModel().clearSelection();
+            comboCategories.getItems().remove(1, comboCategories.getItems().size());
+            comboCategories.setDisable(true);
+
+            // TODO: 25.10.2017 LOGOUT
+            System.out.println("Выход: " + Arrays.toString(currentProfile));
+
+            currentProfile = null;
+            setAnchorNavProfile(false);
+
+            for (int j = 0; j < listPaneAll.size(); j++) {
+                isBookmark[j] = false;
+                int size = listPaneAll.get(j).getPane().getChildren().size();
+                listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().remove(2);
+                listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().add("image-view-bookmark");
+            }
+
+            setListCurrentSites(listPaneInfoBase, listPaneProgramming, listPaneReading);
+
+            textSearch.setText("");
+
+        });
         buttonProfileBookmarks.setOnAction(event -> {
             try {
                 setListBookmarkSites(
@@ -235,7 +262,8 @@ public class Controller {
                 e.printStackTrace();
             }
         });
-        buttonReg.setOnAction(event -> {
+        buttonProfileRegistration.setOnAction(event -> {
+
             if (textRegLogin.getText().isEmpty() || textRegEmail.getText().isEmpty()
                     || textRegPass1.getText().isEmpty() || textRegPass2.getText().isEmpty()) {
                 labelReg.setVisible(true);
@@ -243,6 +271,7 @@ public class Controller {
                 labelReg.setTextFill(Paint.valueOf("#d83a3a"));
                 labelReg.setLayoutX(27);
                 labelReg.setLayoutY(255);
+
             } else {
                 labelReg.setVisible(false);
                 labelReg.setText("Регистрация");
@@ -291,6 +320,7 @@ public class Controller {
                     labelReg.setLayoutX(45);
                     labelReg.setLayoutY(255);
                     return;
+
                 } else {
                     labelReg.setVisible(false);
                     labelReg.setText("Регистрация");
@@ -313,16 +343,16 @@ public class Controller {
                 setAnchorNavProfile(false);
                 buttonProfileLogin.setVisible(true);
             }
+
         });
 
         cloneAction(buttonProfileLogin, textLogin, textPassword);
-        cloneAction(buttonReg, textRegLogin, textRegPass1, textRegPass2,
+        cloneAction(buttonProfileRegistration, textRegLogin, textRegPass1, textRegPass2,
                 textRegLName, textRegFName, textRegEmail);
 
+        comboCategories.getItems().setAll("- выбор -");
         comboSections.getItems().setAll("- выбор -");
         comboSections.getItems().addAll(sections);
-        comboCategories.getItems().setAll("- выбор -");
-
         comboSections.setOnAction(eventSort -> {
 
             textSearch.setText("");
@@ -416,10 +446,12 @@ public class Controller {
     }
 
     private void searchSites(String search) {
+
         anchorSitesParent.getChildren().remove(0, anchorSitesParent.getChildren().size());
         int layoutY = 10;
 
         if (!Objects.equals(search, "")) {
+
             for (int i = 0, index = 0; i < listPaneCurrent.size(); i++)
                 if (listPaneCurrent.get(i).getSection().toLowerCase().contains(search.toLowerCase())
                         || listPaneCurrent.get(i).getCategory().toLowerCase().contains(search.toLowerCase())
@@ -430,11 +462,16 @@ public class Controller {
                     anchorSitesParent.getChildren().get(index++).setLayoutX(10);
                     layoutY += 255;
                 }
-        } else for (int i = 0; i < listPaneCurrent.size(); i++) {
-            anchorSitesParent.getChildren().add(listPaneCurrent.get(i).getPane());
-            anchorSitesParent.getChildren().get(i).setLayoutY(layoutY);
-            anchorSitesParent.getChildren().get(i).setLayoutX(10);
-            layoutY += 255;
+
+        } else {
+
+            for (int i = 0; i < listPaneCurrent.size(); i++) {
+                anchorSitesParent.getChildren().add(listPaneCurrent.get(i).getPane());
+                anchorSitesParent.getChildren().get(i).setLayoutY(layoutY);
+                anchorSitesParent.getChildren().get(i).setLayoutX(10);
+                layoutY += 255;
+            }
+
         }
         anchorSitesParent.setPrefHeight(
                 anchorSitesParent.getChildren().size() > 0
@@ -442,8 +479,10 @@ public class Controller {
                         : 0);
     }
 
-    private String[] setSections() {
-        ArrayList<String[]> records = client.query("get_sections");
+    private String[] setPackagesNames(Integer index) {
+
+        ArrayList<String[]> records = client.query(index == null
+                ? "get_sections" : ("get_category_p-" + index));
         String[] result = new String[records.size()];
 
         for (int i = 0; i < records.size(); i++) {
@@ -453,24 +492,16 @@ public class Controller {
         return result;
     }
 
-    private String[] setCategory(int index) {
-        ArrayList<String[]> records = client.query("get_category_p-" + index);
-        String[] result = new String[records.size()];
-
-        for (int i = 0; i < records.size(); i++)
-            result[i] = records.get(i)[0];
-
-        return result;
-    }
-
-    private void setListPaneAll(ObservableList<Pane>... sites) {
+    @SafeVarargs
+    private final void setListPaneAll(ObservableList<Pane>... sites) {
         listPaneAll = FXCollections.observableArrayList();
         for (int i = 0, index = 0; i < sites.length; i++)
             for (int j = 0; j < sites[i].size(); j++, index++)
                 listPaneAll.add(sites[i].get(j));
     }
 
-    private void setListCurrentSites(ObservableList<Pane>... sites) {
+    @SafeVarargs
+    private final void setListCurrentSites(ObservableList<Pane>... sites) {
         anchorSitesParent.getChildren().remove(0, anchorSitesParent.getChildren().size());
         listPaneCurrent = FXCollections.observableArrayList();
         int layoutY = 10;
@@ -554,7 +585,8 @@ public class Controller {
         return anchorSites;
     }
 
-    private void setListBookmarkSites(ObservableList<Pane>... sites) throws SQLException {
+    @SafeVarargs
+    private final void setListBookmarkSites(ObservableList<Pane>... sites) throws SQLException {
         comboSections.getSelectionModel().clearSelection();
         comboCategories.getItems().remove(1, comboCategories.getItems().size());
         comboCategories.setDisable(true);
@@ -651,31 +683,6 @@ public class Controller {
                 "get_bookmarks_from_p-" + currentProfile[0])}));
     }
 
-    private void logOut() {
-        buttonProfileLogin.setVisible(true);
-
-        comboSections.getSelectionModel().clearSelection();
-        comboCategories.getItems().remove(1, comboCategories.getItems().size());
-        comboCategories.setDisable(true);
-
-        // TODO: 25.10.2017 LOGOUT
-        System.out.println("Выход: " + Arrays.toString(currentProfile));
-
-        currentProfile = null;
-        setAnchorNavProfile(false);
-
-        for (int j = 0; j < listPaneAll.size(); j++) {
-            isBookmark[j] = false;
-            int size = listPaneAll.get(j).getPane().getChildren().size();
-            listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().remove(2);
-            listPaneAll.get(j).getPane().getChildren().get(size - 1).getStyleClass().add("image-view-bookmark");
-        }
-
-        setListCurrentSites(listPaneInfoBase, listPaneProgramming, listPaneReading);
-
-        textSearch.setText("");
-    }
-
     private void setAnchorNavProfile(boolean isLogin) {
         textLogin.setText("");
         textPassword.setText("");
@@ -717,8 +724,8 @@ public class Controller {
         buttonProfileLogOut.setVisible(false);
         buttonProfileBookmarks.setVisible(false);
 
-        if (buttonReg.isVisible()) {
-            buttonReg.setVisible(false);
+        if (buttonProfileRegistration.isVisible()) {
+            buttonProfileRegistration.setVisible(false);
 
             textRegLogin.setText("");
             textRegEmail.setText("");
@@ -754,7 +761,7 @@ public class Controller {
         labelVerifyError.setVisible(false);
 
         buttonProfileLogOut.setVisible(true);
-        buttonReg.setVisible(true);
+        buttonProfileRegistration.setVisible(true);
         textRegLogin.setVisible(true);
         textRegEmail.setVisible(true);
         textRegFName.setVisible(true);
@@ -771,11 +778,9 @@ public class Controller {
     }
 
     private void cloneAction(Button button, TextField... textFields) {
-
         for (TextField textField : textFields) {
             textField.setOnAction(button.getOnAction());
         }
-
     }
 
 }
